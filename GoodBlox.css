@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roblox - Вход и Регистрация</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      color: #222;
+    }
+    header {
+      background-color: #ff3c3c;
+      width: 100%;
+      padding: 20px 0;
+      text-align: center;
+      font-size: 32px;
+      font-weight: 900;
+      color: white;
+      user-select: none;
+      letter-spacing: 3px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+    #container {
+      background: white;
+      margin: 40px 0;
+      border-radius: 15px;
+      width: 350px;
+      padding: 30px 25px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      font-weight: 800;
+      color: #ff3c3c;
+      user-select: none;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-weight: 600;
+      margin: 12px 0 6px 0;
+    }
+    input, select {
+      padding: 10px 12px;
+      font-size: 15px;
+      border: 1.8px solid #ccc;
+      border-radius: 7px;
+      transition: border-color 0.3s ease;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #ff3c3c;
+      box-shadow: 0 0 6px #ff3c3c66;
+    }
+    button[type="submit"] {
+      margin-top: 30px;
+      background-color: #ff3c3c;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 16px;
+      cursor: pointer;
+      user-select: none;
+      padding: 12px 0;
+      transition: background-color 0.25s ease;
+    }
+    button[type="submit"]:hover {
+      background-color: #d83232;
+    }
+    .switch {
+      margin-top: 18px;
+      font-size: 14px;
+      text-align: center;
+      user-select: none;
+      color: #555;
+    }
+    .switch a {
+      color: #ff3c3c;
+      cursor: pointer;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .switch a:hover {
+      text-decoration: underline;
+    }
+    #showSecretBtn {
+      margin: 20px auto 0 auto;
+      display: block;
+      background-color: #555;
+      border: none;
+      color: white;
+      padding: 10px 22px;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    #showSecretBtn:hover {
+      background-color: #333;
+    }
+    #dataDisplay {
+      max-width: 350px;
+      margin: 25px auto;
+      background: #fff;
+      padding: 18px 22px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      font-size: 14px;
+      white-space: pre-wrap;
+      display: none;
+      user-select: text;
+    }
+    footer {
+      margin-top: auto;
+      padding: 15px 0;
+      width: 100%;
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      user-select: none;
+    }
+    .warning {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background-color: #ff3c3ccc;
+      color: white;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 7px;
+      user-select: none;
+      box-shadow: 0 0 8px #ff3c3cbb;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+
+  <header>ROBLOX</header>
+
+  <div id="container">
+    <div id="formArea"></div>
+  </div>
+
+  <button id="showSecretBtn">???</button>
+
+  <div id="dataDisplay"></div>
+
+  <footer>Это не настоящий Roblox</footer>
+  <div class="warning">Это не настоящий Roblox</div>
+
+  <script>
+    const formArea = document.getElementById('formArea');
+    const dataDisplay = document.getElementById('dataDisplay');
+    const showSecretBtn = document.getElementById('showSecretBtn');
+
+    const registeredUsers = [];
+    const loggedInUsers = [];
+
+    const registerHTML = `
+      <h2>Создать аккаунт</h2>
+      <form id="registerForm">
+        <label for="regUser">Имя пользователя</label>
+        <input id="regUser" type="text" required autocomplete="username" />
+        <label for="regPass">Пароль</label>
+        <input id="regPass" type="password" required minlength="6" autocomplete="new-password" />
+        <label for="regBirthday">Дата рождения</label>
+        <input id="regBirthday" type="date" required />
+        <label for="regGender">Пол</label>
+        <select id="regGender" required>
+          <option value="" disabled selected>Выберите</option>
+          <option value="male">Мужской</option>
+          <option value="female">Женский</option>
+          <option value="other">Другое</option>
+        </select>
+        <button type="submit">Зарегистрироваться</button>
+      </form>
+      <div class="switch">
+        Если у тебя есть аккаунт в Roblox, можешь войти через него.<br/>
+        Нажми на кнопку <a href="#" id="toLogin">Войти</a>.
+      </div>
+    `;
+
+    const loginHTML = `
+      <h2>Войти</h2>
+      <form id="loginForm">
+        <label for="logUser">Имя пользователя</label>
+        <input id="logUser" type="text" required autocomplete="username" />
+        <label for="logPass">Пароль</label>
+        <input id="logPass" type="password" required autocomplete="current-password" />
+        <button type="submit">Войти</button>
+      </form>
+      <div class="switch">Нет аккаунта? <a href="#" id="toRegister">Зарегистрироваться</a></div>
+    `;
+
+    function showRegister() {
+      formArea.innerHTML = registerHTML;
+      document.getElementById('registerForm').addEventListener('submit', handleRegister);
+      document.getElementById('toLogin').addEventListener('click', (e) => {
+        e.preventDefault();
+        showLogin();
+      });
+      dataDisplay.style.display = 'none';
+    }
+
+    function showLogin() {
+      formArea.innerHTML = loginHTML;
+      document.getElementById('loginForm').addEventListener('submit', handleLogin);
+      document.getElementById('toRegister').addEventListener('click', (e) => {
+        e.preventDefault();
+        showRegister();
+      });
+      dataDisplay.style.display = 'none';
+    }
+
+    function handleRegister(event) {
+      event.preventDefault();
+      const username = document.getElementById('regUser').value.trim();
+      const password = document.getElementById('regPass').value;
+      const birthday = document.getElementById('regBirthday').value;
+      const gender = document.getElementById('regGender').value;
+
+      registeredUsers.push({ username, password, birthday, gender });
+      alert('Регистрация прошла успешно! (Учебный сайт)');
+      showLogin();
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();
+      const username = document.getElementById('logUser').value.trim();
+      const password = document.getElementById('logPass').value;
+
+      loggedInUsers.push({ username, password });
+      alert('Вы вошли! (Учебный сайт)');
+      showLogin();
+    }
+
+    showRegister();
+
+    showSecretBtn.addEventListener('click', () => {
+      const pass = prompt('Введите пароль для доступа к данным:');
+      if(pass === 'Sutormin2!') {
+        let out = `Пароль: Sutormin2!\\n\\n`;
+        out += `Зарегистрированные пользователи:\\n`;
+        if(registeredUsers.length === 0) out += 'Нет зарегистрированных пользователей.\\n';
+        else registeredUsers.forEach((u,i) => {
+          out += `${i+1}. Имя: ${u.username}, Пароль: ${u.password}, ДР: ${u.birthday}, Пол: ${u.gender}\\n`;
+        });
+        out += `\\nВошедшие пользователи:\\n`;
+        if(loggedInUsers.length === 0) out += 'Нет входов.\\n';
+        else loggedInUsers.forEach((u,i) => {
+          out += `${i+1}. Имя: ${u.username}, Пароль: ${u.password}\\n`;
+        });
+        dataDisplay.textContent = out;
+        dataDisplay.style.display = 'block';
+      } else {
+        alert('Неверный пароль!');
+      }
+    });
+  </script>
+</body>
+</html>
